@@ -3,8 +3,10 @@ try:
 except ImportError:
     from collections import MutableSequence
 
-from .base import Base
+from .base import CRDT
 from .base import Map
+from .base import Set
+from .base import Tuple
 from .base import mutator
 from .codec import decode
 from .codec import encode
@@ -36,14 +38,10 @@ def compare_ids(id1, id2):
     return 0
 
 
-class RGA(Base, MutableSequence):
-    def initial(self):
-        return (
-            Map([(None, None)]),
-            set(),
-            Map([(None, None)]),
-            set(),
-        )
+class RGA(CRDT, MutableSequence):
+    @classmethod
+    def initial(cls):
+        return Tuple((Map([(None, None)]), Set(), Map([(None, None)]), Set(),))
 
     @classmethod
     def join(cls, s1, s2):
@@ -68,8 +66,8 @@ class RGA(Base, MutableSequence):
             result_edges[left_edge] = new_key
             result_edges[new_key] = right
 
-        unmerged_edges = (s1[UNMERGED_EDGES] or set()).union(
-            s2[UNMERGED_EDGES] or set()
+        unmerged_edges = (s1[UNMERGED_EDGES] or Set()).union(
+            s2[UNMERGED_EDGES] or Set()
         )
 
         edges_to_add = s2_edges.copy()
@@ -91,7 +89,7 @@ class RGA(Base, MutableSequence):
         if unmerged_edges:
             progress = True
             while progress:
-                edges_inserted = set()
+                edges_inserted = Set()
                 for edge in unmerged_edges:
                     key, new_value = edge
                     if new_value in result_edges:
@@ -103,12 +101,7 @@ class RGA(Base, MutableSequence):
                 progress = bool(edges_inserted)
                 unmerged_edges = unmerged_edges.difference(edges_inserted)
 
-        return (
-            added,
-            removed,
-            result_edges,
-            unmerged_edges,
-        )
+        return Tuple((added, removed, result_edges, unmerged_edges,))
 
     @classmethod
     def _gen_value(cls, state):
@@ -146,7 +139,7 @@ class RGA(Base, MutableSequence):
         return self._value_cache[index]
 
     def _remove_vertex_delta(self, vertex):
-        return (Map(), set([vertex]), Map(), set())
+        return Tuple((Map(), Set([vertex]), Map(), Set()))
 
     def _remove_index_delta(self, index):
         removed = self.state[REMOVED_VERTICES]
@@ -175,7 +168,7 @@ class RGA(Base, MutableSequence):
             while left in removed:
                 left = edges.get(left)
         new_added = Map()
-        new_removed = set()
+        new_removed = Set()
         if left in removed:
             new_removed.add(left)
         new_edges = Map()
@@ -185,7 +178,7 @@ class RGA(Base, MutableSequence):
             new_edges[left] = new_id
             left = new_id
 
-        return (new_added, new_removed, new_edges, set())
+        return Tuple((new_added, new_removed, new_edges, Set()))
 
     @mutator
     def __delitem__(self, index):
@@ -207,7 +200,7 @@ class RGA(Base, MutableSequence):
         new_edges[before_vertex] = elem_id
         new_edges[elem_id] = r
 
-        return [Map([(elem_id, value)]), set(), new_edges, set()]
+        return Tuple((Map([(elem_id, value)]), Set(), new_edges, Set()))
 
     @mutator
     def insert(self, index, *values):
@@ -225,7 +218,7 @@ class RGA(Base, MutableSequence):
         new_added = Map([(elem_id, value)])
         new_edges = Map([(last, elem_id)])
 
-        return (new_added, set(), new_edges, set())
+        return Tuple((new_added, Set(), new_edges, Set()))
 
     @mutator
     def remove(self, value):
