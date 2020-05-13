@@ -1,14 +1,10 @@
-try:
-    from collections.abc import MutableSet
-except ImportError:
-    from collections import MutableSet
-
 from .base import CRDT
+from .base import CRDTSetMixin
 from .base import Set
 from .base import mutator
 
 
-class GSet(CRDT, MutableSet):
+class GSet(CRDT, CRDTSetMixin):
     @classmethod
     def initial(self):
         return Set()
@@ -19,24 +15,11 @@ class GSet(CRDT, MutableSet):
 
     @classmethod
     def value(cls, state):
-        return set(state)
-
-    def __eq__(self, other):
-        return not self.state.difference(other)
-
-    def __iter__(self):
-        for item in self._value_cache:
-            yield item
-
-    def __contains__(self, item):
-        return item in self._value_cache
-
-    def __len__(self):
-        return len(self._value_cache)
+        return Set(state)
 
     @mutator
     def add(self, value):
         return Set([value])
 
-    def discard(self, value):
+    def remove(self, value):
         raise NotImplementedError("Growth only set does not support removing elements")

@@ -24,8 +24,8 @@ def create_unique_id(state, node_id, index=0):
 
 
 def compare_ids(id1, id2):
-    pos1, node_id1 = decode(id1.decode("base64"), use_list=False)
-    pos2, node_id2 = decode(id2.decode("base64"), use_list=False)
+    pos1, node_id1 = decode(id1.decode("base64"))
+    pos2, node_id2 = decode(id2.decode("base64"))
 
     if pos1 < pos2:
         return -1
@@ -39,6 +39,15 @@ def compare_ids(id1, id2):
 
 
 class RGA(CRDT, MutableSequence):
+    def __iter__(self):
+        return iter(self._value_cache)
+
+    def __contains__(self, item):
+        return item in self._value_cache
+
+    def __len__(self):
+        return len(self._value_cache)
+
     @classmethod
     def initial(cls):
         return Tuple((Map([(None, None)]), Set(), Map([(None, None)]), Set(),))
@@ -115,25 +124,6 @@ class RGA(CRDT, MutableSequence):
     @classmethod
     def value(cls, state):
         return list(cls._gen_value(state))
-
-    def __repr(self):
-        return self._value_cache.__repr__()
-
-    def __str__(self):
-        return self._value_cache.__str__()
-
-    def __eq__(self, other):
-        return all(a == b for a, b in zip(self, other))
-
-    def __iter__(self):
-        for item in self._value_cache:
-            yield item
-
-    def __contains__(self, item):
-        return item in self._value_cache
-
-    def __len__(self):
-        return len(self._value_cache)
 
     def __getitem__(self, index):
         return self._value_cache[index]

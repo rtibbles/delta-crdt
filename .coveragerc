@@ -7,7 +7,6 @@ source =
 branch = true
 source =
     delta_crdts
-    tests
 parallel = true
 
 [report]

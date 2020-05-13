@@ -5,12 +5,18 @@ from .base import Set
 class CausalContext(object):
     def __init__(self, cc=None, dc=None):
         # compact causal context
-        self.cc = Map(cc or {})
+        self.cc = Map(cc) if cc else Map()
         # dot cloud
-        self.dc = Set(dc or [])
+        self.dc = Set(dc) if dc else Set()
 
     def __contains__(self, dot):
         return self.dot_in(dot)
+
+    def __repr__(self):
+        return repr({"cc": self.cc, "dc": self.dc})
+
+    def __str__(self):
+        return str({"cc": self.cc, "dc": self.dc})
 
     def dot_in(self, dot):
         if not isinstance(dot, tuple):
@@ -44,20 +50,11 @@ class CausalContext(object):
             self.compact()
 
     def join(self, other):
-        if not isinstance(other, CausalContext):
-            other = CausalContext(other.cc, other.dc)
-
         other.compact()
         self.compact()
-        all_keys = Set()
         result = Map()
 
-        def consolidate(key):
-            if key not in all_keys:
-                all_keys.add(key)
-                result[key] = max(self.cc.get(key, 0), other.cc.get(key, 0))
-
-        map(consolidate, self.cc.keys())
-        map(consolidate, other.cc.keys())
+        for key in set(self.cc.keys()).union(set(other.cc.keys())):
+            result[key] = max(self.cc.get(key, 0), other.cc.get(key, 0))
 
         return CausalContext(result)

@@ -3,7 +3,7 @@ try:
 except ImportError:
     from collections import MutableMapping
 
-from .base import CRDT
+from .base import CausalCRDT
 from .base import EmbeddableCRDT
 from .base import Map
 from .base import get_crdt_type
@@ -28,7 +28,7 @@ class ORMap(EmbeddableCRDT, MutableMapping):
         for key, sub_state in state.items():
             if hasattr(sub_state, "is_bottom") and sub_state.is_bottom():
                 continue
-            crdt_type = get_crdt_type(sub_state.type_id)
+            crdt_type = get_crdt_type(sub_state.type)
             result[key] = crdt_type.value(sub_state)
 
         return result
@@ -36,8 +36,7 @@ class ORMap(EmbeddableCRDT, MutableMapping):
     @classmethod
     def _create_delta_from_child(cls, key, delta):
         cc = getattr(delta, "cc", CausalContext())
-        delta = DotMap(cc, Map([(key, delta)]))
-        delta.type_id = cls.type_id
+        delta = DotMap(cc, Map([(key, delta)]), type=cls.type)
         return delta
 
     def propagate_delta(self, sub_item, delta):
@@ -47,11 +46,11 @@ class ORMap(EmbeddableCRDT, MutableMapping):
     @mutator
     def apply_sub(self, key, type_name, mutator_name, *args):
         crdt_type = get_crdt_type(type_name)
-        if not issubclass(crdt_type, CRDT):
-            raise TypeError("ORMap can only embed CRDT types")
+        if not issubclass(crdt_type, CausalCRDT):
+            raise TypeError("ORMap can only embed causal CRDT types")
         has_mutator(crdt_type, mutator_name)
         sub_item = crdt_type(self.id, state=self.state.get(key))
-        sub_item.cc = self.state.cc
+        sub_item.state.cc = self.state.cc
         delta = getattr(sub_item, mutator_name)(*args)
         return self._create_delta_from_child(key, delta)
 
@@ -63,13 +62,13 @@ class ORMap(EmbeddableCRDT, MutableMapping):
             dots = None
         new_cc = CausalContext(dots)
 
-        crdt_type = get_crdt_type(sub_state.type_id)
+        crdt_type = get_crdt_type(sub_state.type)
 
         return DotMap(new_cc, Map([(key, crdt_type.initial())]))
 
     @mutator
     def remove(self, key):
-        return self._remove_by_key
+        return self._remove_by_key(key)
 
     def __iter__(self):
         for key in self._value_cache:
@@ -83,21 +82,21 @@ class ORMap(EmbeddableCRDT, MutableMapping):
 
     def __getitem__(self, key):
         sub_state = self.state[key]
-        crdt_type = get_crdt_type(sub_state.type_id)
+        crdt_type = get_crdt_type(sub_state.type)
         sub_item = crdt_type(self.id, state=sub_state)
-        sub_item.cc = self.state.cc
+        sub_item.state.cc = self.state.cc
         sub_item.parent = self
         sub_item.key = key
         return sub_item
 
     @mutator
     def __delitem__(self, key):
-        return self._remove_by_key
+        return self._remove_by_key(key)
 
     @mutator
     def __setitem__(self, key, value):
-        if not isinstance(value, CRDT):
-            raise TypeError("ORMap can only embed CRDT types")
+        if not isinstance(value, CausalCRDT):
+            raise TypeError("ORMap can only embed causal CRDT types")
         sub_state = self.state.get(key)
         try:
             dots = sub_state.dots()
