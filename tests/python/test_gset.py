@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts import GSet
+from delta_crdt import GSet
 from .helpers import transmit
 
 

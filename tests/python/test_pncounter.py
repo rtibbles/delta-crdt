@@ -1,36 +1,36 @@
 import pytest
 
-from delta_crdts import LexCounter
+from delta_crdt import PNCounter
 from .helpers import transmit
 
 
 @pytest.fixture
-def lexcounter():
-    return LexCounter("test id 1")
+def pncounter():
+    return PNCounter("test id 1")
 
 
-def test_can_create(lexcounter):
+def test_can_create(pncounter):
     pass
 
 
-def test_starts_with_value_zero(lexcounter):
-    assert lexcounter == 0
+def test_starts_with_value_zero(pncounter):
+    assert pncounter == 0
 
 
-def test_can_inc(lexcounter):
-    lexcounter.inc()
-    assert lexcounter == 1
+def test_can_inc(pncounter):
+    pncounter.inc()
+    assert pncounter == 1
 
 
-def test_can_dec(lexcounter):
-    lexcounter.dec()
-    assert lexcounter == -1
+def test_can_dec(pncounter):
+    pncounter.dec()
+    assert pncounter == -1
 
 
 @pytest.fixture
 def replicas():
-    replica1 = LexCounter("test id 1")
-    replica2 = LexCounter("test id 2")
+    replica1 = PNCounter("test id 1")
+    replica2 = PNCounter("test id 2")
     replica1.inc()
     replica1.inc()
     replica1.dec()
@@ -42,10 +42,6 @@ def replicas():
 
 def test_both_converge(replicas):
     replica1, replica2 = replicas
-
-    assert replica1 == 1
-    assert replica2 == 1
-
     map(lambda x: replica1.apply(transmit(x)), replica2.deltas)
     map(lambda x: replica2.apply(transmit(x)), replica1.deltas)
     assert replica1 == 2

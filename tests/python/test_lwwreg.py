@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts import LWWReg
+from delta_crdt import LWWReg
 from .helpers import transmit
 
 

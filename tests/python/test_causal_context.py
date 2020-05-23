@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts.causal_context import CausalContext
+from delta_crdt.causal_context import CausalContext
 
 
 @pytest.fixture

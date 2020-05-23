@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts import RWORSet
+from delta_crdt import RWORSet
 
 from .helpers import transmit
 

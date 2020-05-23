@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts import TPSet
+from delta_crdt import TPSet
 
 from .helpers import transmit
 

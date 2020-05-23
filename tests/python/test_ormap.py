@@ -1,7 +1,7 @@
 import pytest
 
-from delta_crdts.dot_set import DotSet
-from delta_crdts import ORMap
+from delta_crdt.dot_set import DotSet
+from delta_crdt import ORMap
 from .helpers import transmit
 
 

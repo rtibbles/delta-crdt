@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts.rga import RGA
+from delta_crdt.rga import RGA
 
 from .helpers import transmit
 

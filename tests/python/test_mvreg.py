@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts import MVReg
+from delta_crdt import MVReg
 from .helpers import transmit
 
 

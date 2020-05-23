@@ -1,31 +1,31 @@
 import pytest
 
-from delta_crdts import DWFlag
+from delta_crdt import EWFlag
 from .helpers import transmit
 
 
 @pytest.fixture
-def dwflag():
-    return DWFlag("test id 1")
+def ewflag():
+    return EWFlag("test id 1")
 
 
-def test_can_create(dwflag):
+def test_can_create(ewflag):
     pass
 
 
-def test_starts_as_true(dwflag):
-    assert dwflag
+def test_starts_as_false(ewflag):
+    assert not ewflag
 
 
-def test_can_disable(dwflag):
-    dwflag.disable()
-    assert not dwflag
+def test_can_enable(ewflag):
+    ewflag.enable()
+    assert ewflag
 
 
 @pytest.fixture
 def replicas():
-    replica1 = DWFlag("test id 1")
-    replica2 = DWFlag("test id 2")
+    replica1 = EWFlag("test id 1")
+    replica2 = EWFlag("test id 2")
     replica1.enable()
     replica1.disable()
     replica2.disable()
@@ -37,5 +37,5 @@ def test_both_converge(replicas):
     replica1, replica2 = replicas
     map(lambda x: replica1.apply(transmit(x)), replica2.deltas)
     map(lambda x: replica2.apply(transmit(x)), replica1.deltas)
-    assert not replica1
-    assert not replica2
+    assert replica1
+    assert replica2

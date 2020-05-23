@@ -21,7 +21,7 @@ class AWORSet(CausalCRDT, CRDTSetMixin):
     @mutator
     def add(self, value):
         return DotSet.join(
-            self.state, self.state.remove_value(value), self.state.add(self.id, value)
+            self.state.remove_value(value), self.state.add(self.id, value)
         )
 
     @mutator

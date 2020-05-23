@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts import CCounter
+from delta_crdt import CCounter
 from .helpers import transmit
 
 

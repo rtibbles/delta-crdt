@@ -1,6 +1,6 @@
 import pytest
 
-from delta_crdts import RWLWWSet
+from delta_crdt import RWLWWSet
 
 from .helpers import transmit
 
